@@ -74,7 +74,11 @@ class TaskReminderReceiver : BroadcastReceiver() {
                     .addAction(0, context.getString(R.string.open_app), open)
                     .build()
                 if (context.canPostNotifications()) {
-                    NotificationManagerCompat.from(context).notify(task.id.hashCode(), notification)
+                    try {
+                        NotificationManagerCompat.from(context).notify(task.id.hashCode(), notification)
+                    } catch (_: SecurityException) {
+                        // Permission can be revoked between the check and posting.
+                    }
                 }
             }
             pending.finish()
@@ -191,7 +195,11 @@ private fun postDailyNotification(context: Context, id: Int, title: String, body
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .addAction(0, context.getString(R.string.open_app), open)
         .build()
-    NotificationManagerCompat.from(context).notify(id, notification)
+    try {
+        NotificationManagerCompat.from(context).notify(id, notification)
+    } catch (_: SecurityException) {
+        // Permission can be revoked between the check and posting.
+    }
 }
 
 private fun Task.notificationSummary(context: Context): String {

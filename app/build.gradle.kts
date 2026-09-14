@@ -4,6 +4,17 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val uploadStoreFile = providers.environmentVariable("FORGETTY_UPLOAD_STORE_FILE").orNull
+val uploadStorePassword = providers.environmentVariable("FORGETTY_UPLOAD_STORE_PASSWORD").orNull
+val uploadKeyAlias = providers.environmentVariable("FORGETTY_UPLOAD_KEY_ALIAS").orNull
+val uploadKeyPassword = providers.environmentVariable("FORGETTY_UPLOAD_KEY_PASSWORD").orNull
+val hasUploadSigning = listOf(
+    uploadStoreFile,
+    uploadStorePassword,
+    uploadKeyAlias,
+    uploadKeyPassword,
+).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.si13.forgetty"
     compileSdk {
@@ -15,16 +26,30 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "io.qameta.allure.android.runners.AllureAndroidJUnitRunner"
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
 
+    signingConfigs {
+        if (hasUploadSigning) {
+            create("upload") {
+                storeFile = file(requireNotNull(uploadStoreFile))
+                storePassword = requireNotNull(uploadStorePassword)
+                keyAlias = requireNotNull(uploadKeyAlias)
+                keyPassword = requireNotNull(uploadKeyPassword)
+            }
+        }
+    }
+
     buildTypes {
         release {
             optimization {
-                enable = false
+                enable = true
+            }
+            if (hasUploadSigning) {
+                signingConfig = signingConfigs.getByName("upload")
             }
         }
     }

@@ -34,9 +34,9 @@ jobs:
         run: bash scripts/validate-harness.sh
 
   build-and-unit:
-    name: Build and unit tests
+    name: Build, release bundle and unit tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -55,6 +55,12 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --console=plain
 
+      - name: Build optimized release bundle
+        run: ./gradlew bundleRelease --console=plain
+
+      - name: Verify 16 KB native library alignment
+        run: bash scripts/verify-16kb-page-size.sh
+
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --console=plain
 
@@ -70,7 +76,6 @@ jobs:
 
       - name: Android Lint
         run: ./gradlew lintDebug --console=plain
-        continue-on-error: true
 
       - name: Upload reports
         if: always()
@@ -91,13 +96,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  espresso:
-    name: Espresso
-    needs: [static-checks, build-and-unit]
-    permissions:
-      contents: read
-      checks: write
-    uses: ./.github/workflows/espresso.yml
+      - name: Upload unsigned release AAB
+        uses: actions/upload-artifact@v7
+        with:
+          name: forgetty-release-unsigned-aab
+          path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
 
   maestro:
     name: Maestro

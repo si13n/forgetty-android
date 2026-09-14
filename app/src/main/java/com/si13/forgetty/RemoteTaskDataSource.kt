@@ -11,6 +11,9 @@ class RemoteTaskDataSource(
     private val firestore: FirebaseFirestore,
     private val userId: String
 ) : TaskDataSource {
+    private companion object {
+        const val DELETE_BATCH_SIZE = 450
+    }
     // Firestore rules are scoped to this path so each user only reaches their own task documents.
     private val tasksCollection = firestore
         .collection("users")
@@ -66,14 +69,14 @@ class RemoteTaskDataSource(
     }
 
     override suspend fun deleteAll() {
-        val documents = tasksCollection.get().await().documents
-        if (documents.isEmpty()) {
-            return
-        }
+        do {
+            val documents = tasksCollection.limit(DELETE_BATCH_SIZE.toLong()).get().await().documents
+            if (documents.isEmpty()) return
 
-        val batch = firestore.batch()
-        documents.forEach { document -> batch.delete(document.reference) }
-        batch.commit().await()
+            val batch = firestore.batch()
+            documents.forEach { document -> batch.delete(document.reference) }
+            batch.commit().await()
+        } while (documents.size == DELETE_BATCH_SIZE)
     }
 
     private fun Task.toFirestoreMap(): Map<String, Any> {

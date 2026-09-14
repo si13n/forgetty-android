@@ -279,8 +279,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             .setPositiveButton(R.string.delete) { _, _ -> viewLifecycleOwner.lifecycleScope.launch { taskRepository.deleteCompletedTasks() } }.show()
     }
 
-    private fun showPolicy(title: Int) = MaterialAlertDialogBuilder(requireContext()).setTitle(title).setMessage(R.string.policy_not_configured).setPositiveButton(android.R.string.ok, null).show()
-    private fun sendFeedback() = startActivity(Intent.createChooser(Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("mailto:?subject=Forgetty feedback")), getString(R.string.send_feedback)))
+    private fun showPolicy(title: Int) {
+        val url = if (title == R.string.privacy) PRIVACY_POLICY_URL else TERMS_URL
+        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+    }
+
+    private fun sendFeedback() {
+        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(FEEDBACK_URL)))
+    }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     private fun renderSyncStatus(isOnline: Boolean) {
@@ -322,5 +328,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private fun refreshUser() {
         if (::authRepository.isInitialized) users.value = authRepository.getCurrentUser()
+    }
+
+    private companion object {
+        const val PRIVACY_POLICY_URL =
+            "https://github.com/si13n/forgetty-android/blob/main/docs/play-store/privacy-policy.md"
+        const val TERMS_URL =
+            "https://github.com/si13n/forgetty-android/blob/main/docs/play-store/terms-of-service.md"
+        const val FEEDBACK_URL =
+            "https://github.com/si13n/forgetty-android/issues/new"
     }
 }
