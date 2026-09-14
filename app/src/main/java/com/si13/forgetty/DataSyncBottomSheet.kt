@@ -19,10 +19,12 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class DataSyncBottomSheet : BottomSheetDialogFragment() {
     private lateinit var repository: TaskRepository
+    private lateinit var deleteAccountRow: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,10 +69,11 @@ class DataSyncBottomSheet : BottomSheetDialogFragment() {
         root.findViewById<View>(R.id.data_sync_delete_all_row).setOnClickListener {
             confirmDeleteAllTasks()
         }
-        root.findViewById<View>(R.id.data_sync_delete_account_row).apply {
-            isEnabled = false
-            isClickable = false
-            isFocusable = false
+        deleteAccountRow = root.findViewById(R.id.data_sync_delete_account_row)
+        val canDeleteAccount = FirebaseAuth.getInstance().currentUser != null
+        setDeleteAccountEnabled(canDeleteAccount)
+        if (canDeleteAccount) {
+            deleteAccountRow.setOnClickListener { confirmDeleteAccount() }
         }
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val navigation = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
@@ -90,7 +93,7 @@ class DataSyncBottomSheet : BottomSheetDialogFragment() {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }, getString(R.string.export_tasks)))
             }.onFailure {
-                if (isAdded) showMessage(R.string.export_failed)
+                if (isAdded) showMessage(getString(R.string.export_failed))
             }
         }
     }
@@ -104,15 +107,66 @@ class DataSyncBottomSheet : BottomSheetDialogFragment() {
                 lifecycleScope.launch {
                     runCatching { repository.deleteAllTasks() }
                         .onSuccess { if (isAdded) dismiss() }
-                        .onFailure { if (isAdded) showMessage(R.string.tasks_error) }
+                        .onFailure { if (isAdded) showMessage(getString(R.string.tasks_error)) }
                 }
             }
             .show()
     }
 
-    private fun showMessage(messageRes: Int) {
+    private fun confirmDeleteAccount() {
         MaterialAlertDialogBuilder(requireContext())
-            .setMessage(messageRes)
+            .setTitle(R.string.delete_account_confirmation_title)
+            .setMessage(R.string.delete_account_confirmation_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.delete_account) { _, _ -> reauthenticateAndDeleteAccount() }
+            .show()
+    }
+
+    private fun reauthenticateAndDeleteAccount() {
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            showMessage(getString(R.string.delete_account_sign_in_required))
+            setDeleteAccountEnabled(false)
+            return
+        }
+        setDeleteAccountEnabled(false)
+        lifecycleScope.launch {
+            when (val result = GoogleAuthClient().reauthenticate(requireActivity(), user)) {
+                GoogleReauthenticationResult.Cancelled -> setDeleteAccountEnabled(true)
+                is GoogleReauthenticationResult.Failure -> {
+                    setDeleteAccountEnabled(true)
+                    showMessage(result.message)
+                }
+                GoogleReauthenticationResult.Success -> {
+                    runCatching {
+                        AccountDeletionManager(requireContext()).delete(user)
+                    }.onSuccess {
+                        if (isAdded) dismiss()
+                    }.onFailure {
+                        if (isAdded) {
+                            setDeleteAccountEnabled(true)
+                            showMessage(getString(R.string.delete_account_failed))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setDeleteAccountEnabled(enabled: Boolean) {
+        if (!::deleteAccountRow.isInitialized) return
+        deleteAccountRow.isEnabled = enabled
+        deleteAccountRow.isClickable = enabled
+        deleteAccountRow.isFocusable = enabled
+        deleteAccountRow.alpha = if (enabled) 1f else 0.55f
+        deleteAccountRow.contentDescription = getString(
+            if (enabled) R.string.delete_account_accessibility
+            else R.string.delete_account_unavailable_accessibility
+        )
+    }
+
+    private fun showMessage(message: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }
