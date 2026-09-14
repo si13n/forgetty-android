@@ -234,7 +234,7 @@ class HomeTaskTest {
             onView(withId(R.id.list_manager_name)).perform(replaceText("Weekend"))
             onView(withId(R.id.list_manager_colors)).perform(clickChildAt(2))
             onView(withId(R.id.list_manager_name)).perform(pressImeActionButton())
-            onView(withText("Weekend")).check(matches(isDisplayed()))
+            onView(withContentDescription("Delete Weekend list")).check(matches(isDisplayed()))
 
             onView(withContentDescription("Delete Weekend list")).perform(click())
             onView(withText("Delete \"Weekend\"?")).inRoot(isDialog()).check(matches(isDisplayed()))
@@ -715,6 +715,7 @@ class HomeTaskTest {
     private fun continueAsGuest() {
         // Most Home tests run as a guest, so dismiss the launch sign-in prompt first.
         onView(withId(R.id.continue_as_guest_button)).perform(click())
+        onView(withId(R.id.home_content)).check(matches(isDisplayed()))
     }
 
     private fun clearState() {

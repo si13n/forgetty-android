@@ -27,9 +27,11 @@ tags:
 - assertVisible:
     id: "status_filter_all"
 - assertVisible:
+    id: "status_filter_completed"
+- assertVisible:
     id: "task_search_button"
 - assertVisible:
-    id: "task_sort_button"
+    id: "task_settings_button"
 
 # NOTE: deliberately no assertion on task count or on any seeded task title.
 # Debug builds seed ~100 demo tasks asynchronously after a data clear, so any such
