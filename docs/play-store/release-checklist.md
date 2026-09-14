@@ -13,7 +13,8 @@
 - [x] Runtime notification permission requested where required
 - [x] In-app account and cloud-data deletion with recent Google reauthentication
 - [x] Privacy Policy, Terms, account-deletion page, Data safety draft, and localized listing copy
-- [x] PR gate includes debug build, release bundle, unit tests, blocking lint, Espresso, and Maestro
+- [x] PR gate includes debug build, release bundle, 16 KB validation, unit tests, blocking lint, and Maestro
+- [ ] Rewrite the stale Espresso login-sheet assertions, then restore Espresso to the blocking PR gate
 
 ## Required manual setup before production
 
