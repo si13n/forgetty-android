@@ -390,17 +390,17 @@ class ListManagerBottomSheet : BottomSheetDialogFragment() {
         }
         val id = editTargetId ?: run { saving = false; return }
         val change = store.update(id, cleanName, inputColor) ?: run { saving = false; return }
-        lifecycleScope.launch {
-            if (change.oldName != change.updated.name) {
-                repository.renameList(change.oldName, change.updated.name)
-                taskCounts = taskCounts.toMutableMap().apply {
-                    val count = remove(change.oldName) ?: 0
-                    put(change.updated.name, count)
-                }
+        if (change.oldName != change.updated.name) {
+            taskCounts = taskCounts.toMutableMap().apply {
+                val count = remove(change.oldName) ?: 0
+                put(change.updated.name, count)
             }
-            notifyChanged()
-            showListMode()
+            lifecycleScope.launch {
+                repository.renameList(change.oldName, change.updated.name)
+            }
         }
+        notifyChanged()
+        showListMode()
     }
 
     private fun showDeleteConfirmation(list: TaskListDefinition) {
