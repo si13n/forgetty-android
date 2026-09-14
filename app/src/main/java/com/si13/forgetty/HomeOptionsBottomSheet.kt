@@ -134,7 +134,7 @@ class HomeOptionsBottomSheet : BottomSheetDialogFragment() {
         private const val ARG_AVAILABLE_LISTS = "arg_available_lists"
         private const val ARG_AVAILABLE_TAGS = "arg_available_tags"
 
-        fun show(
+        internal fun show(
             fragmentManager: FragmentManager,
             showCompleted: Boolean,
             sortMode: TaskSortMode,
