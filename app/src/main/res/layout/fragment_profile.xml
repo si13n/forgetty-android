@@ -135,7 +135,7 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:padding="24dp">
-                <ImageView android:layout_width="96dp" android:layout_height="96dp" android:background="@drawable/bg_profile_avatar" android:contentDescription="@null" android:padding="28dp" android:src="@drawable/ic_cloud_off" android:tint="@color/forgetty_on_primary_container" />
+                <ImageView android:layout_width="96dp" android:layout_height="96dp" android:background="@drawable/bg_profile_avatar" android:contentDescription="@null" android:padding="28dp" android:src="@drawable/ic_cloud_off" app:tint="@color/forgetty_on_primary_container" />
                 <TextView android:id="@+id/profile_message_text" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:gravity="center" android:text="@string/using_forgetty_guest" android:textColor="@color/text_primary" android:textSize="18sp" android:fontFamily="sans-serif-medium" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:gravity="center" android:text="@string/guest_local_storage_explanation" android:textColor="@color/text_secondary" android:textSize="14sp" />
                 <com.google.android.material.button.MaterialButton android:id="@+id/profile_sign_in_button" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="24dp" android:text="@string/sign_in" android:textAllCaps="false" app:backgroundTint="@color/forgetty_primary" app:cornerRadius="14dp" />
