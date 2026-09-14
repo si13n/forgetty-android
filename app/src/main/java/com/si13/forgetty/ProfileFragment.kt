@@ -141,11 +141,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         accountCard.isVisible = state.showProfileCard
         signOutButton.isVisible = state.showSignOut
         guestContainer.isVisible = state.user == null
-        val showAccountSettings = state.user != null
-        view?.findViewById<View>(R.id.profile_settings_title)?.isVisible = showAccountSettings
-        view?.findViewById<View>(R.id.profile_settings_card)?.isVisible = showAccountSettings
-        view?.findViewById<View>(R.id.profile_extended_settings)?.isVisible = showAccountSettings
-        view?.findViewById<View>(R.id.profile_version_label)?.isVisible = showAccountSettings
+        view?.findViewById<View>(R.id.profile_settings_title)?.isVisible = true
+        view?.findViewById<View>(R.id.profile_settings_card)?.isVisible = true
+        view?.findViewById<View>(R.id.profile_extended_settings)?.isVisible = true
+        view?.findViewById<View>(R.id.profile_version_label)?.isVisible = true
         setProgress(state)
         renderSyncStatus(state.isOnline)
         appearanceValue.setText(appearancePreferences.mode.labelRes)

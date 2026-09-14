@@ -55,6 +55,11 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         addTextToBox(summaryBox, "Completion rate  ·  $completed of ${tasks.size} tasks completed", 12, color(R.color.forgetty_text_secondary))
         content.addView(summary)
         activityCard(tasks, today)
+        breakdownCard(
+            heading = "Tasks by list",
+            values = tasks.groupingBy(Task::listName).eachCount(),
+            suffix = { _, count -> "$count tasks" }
+        )
         val metrics = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
         metricColumn(metrics, "Current streak", "🔥 ${currentStreak(tasks, today)} days")
         metricColumn(metrics, "Completed this ${period.label.lowercase()}", "✓ ${periodCompleted.size} tasks")
