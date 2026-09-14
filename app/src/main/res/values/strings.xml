@@ -285,8 +285,14 @@
     <string name="export_tasks_summary">Share a JSON backup through Android</string>
     <string name="export_failed">Couldn’t create the task export.</string>
     <string name="delete_account">Delete account</string>
-    <string name="delete_account_future_summary">Available in a future update</string>
-    <string name="delete_account_future_accessibility">Delete account, available in a future update</string>
+    <string name="delete_account_summary">Permanently delete your account and synced task data</string>
+    <string name="delete_account_accessibility">Delete account and synced data</string>
+    <string name="delete_account_unavailable_accessibility">Delete account, sign in required</string>
+    <string name="delete_account_confirmation_title">Delete your account?</string>
+    <string name="delete_account_confirmation_message">Your account and all synced tasks will be permanently deleted. Local app data on this device will also be cleared. This can’t be undone. Google will ask you to confirm your identity.</string>
+    <string name="delete_account_sign_in_required">Sign in before deleting an account.</string>
+    <string name="account_reauthentication_failed">Couldn’t verify this account. Make sure you choose the same Google account and try again.</string>
+    <string name="delete_account_failed">Couldn’t delete the account. Your account is still available; please try again.</string>
     <string name="delete_completed_tasks">Delete completed tasks</string>
     <string name="delete_completed_tasks_summary">Remove all finished tasks</string>
     <string name="delete_completed_confirmation">Completed tasks will be permanently removed from the active storage account.</string>
