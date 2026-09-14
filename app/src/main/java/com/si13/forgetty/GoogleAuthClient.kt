@@ -26,63 +26,73 @@ class GoogleAuthClient {
             return GoogleAuthResult.Failure(activity.getString(R.string.google_sign_in_offline))
         }
 
-        val webClientId = getWebClientId(activity)
+        val credential = requestCredential(activity)
             ?: return GoogleAuthResult.Failure(activity.getString(R.string.firebase_config_missing))
-
-        val credentialManager = CredentialManager.create(activity)
-        val googleOption = GetSignInWithGoogleOption.Builder(webClientId).build()
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleOption)
-            .build()
-
-        val credential = try {
-            credentialManager.getCredential(
-                context = activity,
-                request = request
-            ).credential
-        } catch (exception: GetCredentialCancellationException) {
-            return GoogleAuthResult.Cancelled
-        } catch (exception: GetCredentialException) {
-            return GoogleAuthResult.Failure(
-                activity.getString(
-                    if (connectivity.isOnline()) {
-                        R.string.google_sign_in_failed
-                    } else {
-                        R.string.google_sign_in_offline
-                    }
-                )
-            )
+        if (credential is CredentialRequestResult.Cancelled) return GoogleAuthResult.Cancelled
+        if (credential is CredentialRequestResult.Failure) {
+            return GoogleAuthResult.Failure(activity.getString(R.string.google_sign_in_failed))
         }
 
-        val idToken = try {
-            getGoogleIdToken(credential)
-        } catch (exception: GoogleIdTokenParsingException) {
-            return GoogleAuthResult.Failure(
-                activity.getString(R.string.google_sign_in_failed)
-            )
-        }
-
-        val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-
+        val firebaseCredential = (credential as CredentialRequestResult.Success).firebaseCredential
         return try {
-            val result = FirebaseAuth.getInstance()
-                .signInWithCredential(firebaseCredential)
-                .await()
+            val result = FirebaseAuth.getInstance().signInWithCredential(firebaseCredential).await()
             val user = result.user
-                ?: return GoogleAuthResult.Failure(
-                    activity.getString(R.string.google_sign_in_failed)
-                )
+                ?: return GoogleAuthResult.Failure(activity.getString(R.string.google_sign_in_failed))
             GoogleAuthResult.Success(user)
         } catch (exception: Exception) {
             GoogleAuthResult.Failure(
                 activity.getString(
-                    if (connectivity.isOnline()) {
-                        R.string.google_sign_in_failed
-                    } else {
-                        R.string.google_sign_in_offline
-                    }
+                    if (connectivity.isOnline()) R.string.google_sign_in_failed
+                    else R.string.google_sign_in_offline
                 )
             )
+        }
+    }
+
+    suspend fun reauthenticate(activity: Activity, user: FirebaseUser): GoogleReauthenticationResult {
+        val connectivity = AndroidConnectivityObserver(activity.applicationContext)
+        if (!connectivity.isOnline()) {
+            return GoogleReauthenticationResult.Failure(activity.getString(R.string.google_sign_in_offline))
+        }
+
+        return when (val credential = requestCredential(activity)) {
+            null -> GoogleReauthenticationResult.Failure(activity.getString(R.string.firebase_config_missing))
+            CredentialRequestResult.Cancelled -> GoogleReauthenticationResult.Cancelled
+            CredentialRequestResult.Failure ->
+                GoogleReauthenticationResult.Failure(activity.getString(R.string.google_sign_in_failed))
+            is CredentialRequestResult.Success -> try {
+                user.reauthenticate(credential.firebaseCredential).await()
+                GoogleReauthenticationResult.Success
+            } catch (exception: Exception) {
+                GoogleReauthenticationResult.Failure(
+                    activity.getString(R.string.account_reauthentication_failed)
+                )
+            }
+        }
+    }
+
+    private suspend fun requestCredential(activity: Activity): CredentialRequestResult? {
+        val webClientId = getWebClientId(activity) ?: return null
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(GetSignInWithGoogleOption.Builder(webClientId).build())
+            .build()
+        val credential = try {
+            CredentialManager.create(activity).getCredential(
+                context = activity,
+                request = request
+            ).credential
+        } catch (exception: GetCredentialCancellationException) {
+            return CredentialRequestResult.Cancelled
+        } catch (exception: GetCredentialException) {
+            return CredentialRequestResult.Failure
+        }
+
+        return try {
+            CredentialRequestResult.Success(
+                GoogleAuthProvider.getCredential(getGoogleIdToken(credential), null)
+            )
+        } catch (exception: GoogleIdTokenParsingException) {
+            CredentialRequestResult.Failure
         }
     }
 
@@ -93,7 +103,6 @@ class GoogleAuthClient {
         ) {
             return GoogleIdTokenCredential.createFrom(credential.data).idToken
         }
-
         throw GoogleIdTokenParsingException()
     }
 
@@ -103,35 +112,39 @@ class GoogleAuthClient {
             "string",
             context.packageName
         )
-
-        if (resourceId == 0) {
-            return null
-        }
-
+        if (resourceId == 0) return null
         return context.getString(resourceId).takeIf { it.isNotBlank() }
+    }
+
+    private sealed interface CredentialRequestResult {
+        data class Success(
+            val firebaseCredential: com.google.firebase.auth.AuthCredential
+        ) : CredentialRequestResult
+        data object Cancelled : CredentialRequestResult
+        data object Failure : CredentialRequestResult
     }
 }
 
 sealed class GoogleAuthResult {
     data class Success(val user: FirebaseUser) : GoogleAuthResult()
-    object Cancelled : GoogleAuthResult()
+    data object Cancelled : GoogleAuthResult()
     data class Failure(val message: String) : GoogleAuthResult()
+}
+
+sealed interface GoogleReauthenticationResult {
+    data object Success : GoogleReauthenticationResult
+    data object Cancelled : GoogleReauthenticationResult
+    data class Failure(val message: String) : GoogleReauthenticationResult
 }
 
 private suspend fun <T> Task<T>.await(): T {
     return suspendCancellableCoroutine { continuation ->
         addOnSuccessListener { result ->
-            if (continuation.isActive) {
-                continuation.resume(result)
-            }
+            if (continuation.isActive) continuation.resume(result)
         }
         addOnFailureListener { exception ->
-            if (continuation.isActive) {
-                continuation.resumeWithException(exception)
-            }
+            if (continuation.isActive) continuation.resumeWithException(exception)
         }
-        addOnCanceledListener {
-            continuation.cancel()
-        }
+        addOnCanceledListener { continuation.cancel() }
     }
 }
