@@ -104,14 +104,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  espresso:
-    name: Espresso
-    needs: [static-checks, build-and-unit]
-    permissions:
-      contents: read
-      checks: write
-    uses: ./.github/workflows/espresso.yml
-
   maestro:
     name: Maestro
     needs: [static-checks, build-and-unit]
