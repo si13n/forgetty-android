@@ -251,6 +251,7 @@
     <string name="weekly_activity_description">Completed tasks over the last seven days</string>
     <string name="weekly_activity_values">Completed tasks for the last seven days: %1$s</string>
     <string name="completed">Completed</string>
+    <string name="complete">Complete</string>
     <string name="active">Active</string>
     <string name="completion_rate">Completion rate</string>
     <string name="productivity">Productivity</string>
