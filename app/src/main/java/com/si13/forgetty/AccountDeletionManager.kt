@@ -22,8 +22,8 @@ class AccountDeletionManager(context: Context) {
         AuthRepository(appContext).clear()
         ForgettyPreferences.create(appContext).clear()
         appContext.getSharedPreferences("forgetty_task_lists", Context.MODE_PRIVATE)
-            .edit().clear().commit()
+            .edit().clear().apply()
         appContext.getSharedPreferences("forgetty_task_tags", Context.MODE_PRIVATE)
-            .edit().clear().commit()
+            .edit().clear().apply()
     }
 }
