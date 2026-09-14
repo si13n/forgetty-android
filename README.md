@@ -214,14 +214,15 @@ Important components:
 - Overdue, Today, Upcoming, No due date and Completed sections.
 - Search across titles, notes, tags and list names.
 - Status filters and multiple sort modes.
-- Personal, Work, Shared, Shopping and custom task lists.
-- Add Task with notes, reminders, recurrence, tags, subtasks, attachments and lists.
+- Personal, Work, Shared, Shopping and custom task lists, plus a dedicated tag manager.
+- Add Task with notes, reminders, recurrence, tag/list selectors, focused subtask creation, and attachments.
 - Editable task details with completion, duplication, sharing and deletion.
 - Guest mode backed by Room; authenticated mode backed by user-scoped Firestore.
 - Google sign-in via Firebase Authentication and Android Credential Manager.
 - Guest-task import after sign-in.
 - System/light/dark appearance.
-- Native notification reminders, shortcuts, export and `RemoteViews` widgets.
+- Native reminder, due-today and Today digest notifications with one clear Open app action.
+- Shortcuts, export and `RemoteViews` widgets.
 
 ## Build and test
 

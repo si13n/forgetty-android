@@ -61,6 +61,17 @@ class ForgettyPreferences private constructor(
         }.getOrDefault(DayOfWeek.MONDAY)
         set(value) = edit(KEY_START_OF_WEEK, value.name)
 
+    var recentSearches: List<String>
+        get() = preferences.getString(KEY_RECENT_SEARCHES, null)
+            ?.split(RECENT_SEPARATOR)?.filter(String::isNotBlank).orEmpty()
+        set(value) = edit(KEY_RECENT_SEARCHES, value.take(MAX_RECENT_SEARCHES).joinToString(RECENT_SEPARATOR))
+
+    fun addRecentSearch(query: String) {
+        val value = query.trim()
+        if (value.isBlank()) return
+        recentSearches = listOf(value) + recentSearches.filterNot { it.equals(value, ignoreCase = true) }
+    }
+
     val notificationPreferences: NotificationPreferences
         get() = NotificationPreferences(
             taskReminders = preferences.getBoolean(KEY_TASK_REMINDERS, true),
@@ -92,6 +103,9 @@ class ForgettyPreferences private constructor(
         private const val KEY_DEFAULT_FILTER = "default_filter"
         private const val KEY_DEFAULT_REMINDER = "default_reminder_minutes"
         private const val KEY_START_OF_WEEK = "start_of_week"
+        private const val KEY_RECENT_SEARCHES = "recent_searches"
+        private const val RECENT_SEPARATOR = "\u001F"
+        private const val MAX_RECENT_SEARCHES = 3
         private const val KEY_TASK_REMINDERS = "task_reminders"
         private const val KEY_OVERDUE_REMINDERS = "overdue_reminders"
         private const val KEY_DAILY_SUMMARY = "daily_summary"

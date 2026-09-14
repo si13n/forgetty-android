@@ -22,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navHostFragment: NavHostFragment
     fun setBottomNavigationVisible(visible: Boolean) {
         findViewById<View>(R.id.bottom_navigation)?.visibility = if (visible) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.add_task_fab)?.visibility = if (
+            visible && ::navController.isInitialized && navController.currentDestination?.id == R.id.homeFragment
+        ) View.VISIBLE else View.GONE
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +57,7 @@ class MainActivity : AppCompatActivity() {
             updateNavigationButton(homeButton, destination.id == R.id.homeFragment)
             updateNavigationButton(profileButton, destination.id == R.id.profileFragment)
             updateNavigationButton(statsButton, destination.id == R.id.statsFragment)
+            addTaskButton.visibility = if (destination.id == R.id.homeFragment) View.VISIBLE else View.GONE
         }
 
         if (savedInstanceState == null) {

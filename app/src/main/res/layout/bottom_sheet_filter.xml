@@ -41,6 +41,17 @@
 
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:layout_marginBottom="8dp" android:fontFamily="sans-serif-medium" android:text="@string/filter_tags" android:textColor="@color/forgetty_text_secondary" android:textSize="13sp" />
     <com.google.android.material.chip.ChipGroup android:id="@+id/filter_tag_group" android:layout_width="match_parent" android:layout_height="wrap_content" app:chipSpacingHorizontal="8dp" app:chipSpacingVertical="8dp" app:singleLine="false" />
+    <TextView
+        android:id="@+id/filter_manage_tags"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:clickable="true"
+        android:contentDescription="@string/manage_tags"
+        android:focusable="true"
+        android:gravity="center_vertical|end"
+        android:text="@string/manage_tags"
+        android:textColor="@color/forgetty_primary"
+        android:textSize="14sp" />
 
     <com.google.android.material.button.MaterialButton android:id="@+id/filter_apply" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="16dp" android:text="@string/apply_filters" android:textAllCaps="false" android:textSize="16sp" app:cornerRadius="18dp" />
 </LinearLayout>

@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="forgetty_background">#FF111318</color>
-    <color name="forgetty_surface">#FF191B22</color>
-    <color name="forgetty_surface_low">#FF1D2027</color>
-    <color name="forgetty_surface_container">#FF22252D</color>
-    <color name="forgetty_primary">#FFBBC3FF</color>
-    <color name="forgetty_on_primary">#FF23347F</color>
-    <color name="forgetty_primary_container">#FF394B9F</color>
-    <color name="forgetty_on_primary_container">#FFDFE5FF</color>
-    <color name="forgetty_secondary">#FF9CCDD7</color>
-    <color name="forgetty_secondary_container">#FF28515B</color>
-    <color name="forgetty_on_secondary_container">#FFD8F1F5</color>
-    <color name="forgetty_tertiary">#FFE6A9C9</color>
-    <color name="forgetty_tertiary_container">#FF713D59</color>
-    <color name="forgetty_on_tertiary_container">#FFF4DCE8</color>
+    <color name="forgetty_background">#FF101318</color>
+    <color name="forgetty_surface">#FF1B1C22</color>
+    <color name="forgetty_surface_low">#FF151820</color>
+    <color name="forgetty_surface_container">#FF22262F</color>
+    <color name="forgetty_primary">#FF69C7F8</color>
+    <color name="forgetty_on_primary">#FF003650</color>
+    <color name="forgetty_primary_container">#FF003650</color>
+    <color name="forgetty_on_primary_container">#FFCCE9FB</color>
+    <color name="forgetty_secondary">#FF84D8FF</color>
+    <color name="forgetty_secondary_container">#FF173B4C</color>
+    <color name="forgetty_on_secondary_container">#FFDDF5FF</color>
+    <color name="forgetty_tertiary">#FFC7BFFF</color>
+    <color name="forgetty_tertiary_container">#FF3D2E8B</color>
+    <color name="forgetty_on_tertiary_container">#FFE9E5FF</color>
     <color name="forgetty_text_primary">#FFE4E2EA</color>
     <color name="forgetty_text_secondary">#FFC6C5CF</color>
     <color name="forgetty_outline">#FF8E909A</color>
     <color name="forgetty_outline_variant">#FF3F424B</color>
-    <color name="forgetty_success">#FF82D5B4</color>
-    <color name="forgetty_warning">#FFE7C07B</color>
-    <color name="forgetty_overdue">#FFFFB2B9</color>
+    <color name="forgetty_success">#FF67DDBE</color>
+    <color name="forgetty_warning">#FFFFC46B</color>
+    <color name="forgetty_overdue">#FFFFB4AB</color>
     <color name="forgetty_error">#FFFFB4AB</color>
+    <color name="forgetty_error_container">#FF5A1D1D</color>
     <color name="forgetty_disabled">#FF747680</color>
 
     <color name="app_background">@color/forgetty_background</color>
