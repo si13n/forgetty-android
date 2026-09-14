@@ -161,9 +161,10 @@
         android:id="@+id/data_sync_delete_account_row"
         android:layout_width="match_parent"
         android:layout_height="72dp"
-        android:alpha="0.55"
-        android:contentDescription="@string/delete_account_future_accessibility"
-        android:enabled="false"
+        android:clickable="true"
+        android:contentDescription="@string/delete_account_accessibility"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="16dp"
@@ -201,7 +202,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="@string/delete_account_future_summary"
+                android:text="@string/delete_account_summary"
                 android:textColor="@color/forgetty_text_secondary"
                 android:textSize="13sp" />
         </LinearLayout>
