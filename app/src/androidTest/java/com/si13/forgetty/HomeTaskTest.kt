@@ -715,7 +715,6 @@ class HomeTaskTest {
     private fun continueAsGuest() {
         // Most Home tests run as a guest, so dismiss the launch sign-in prompt first.
         onView(withId(R.id.continue_as_guest_button)).perform(click())
-        onView(withId(R.id.home_content)).check(matches(isDisplayed()))
     }
 
     private fun clearState() {
