@@ -19,6 +19,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.view.inputmethod.EditorInfo
 import android.widget.CheckBox
 import android.widget.GridLayout
 import android.widget.ImageButton
@@ -72,6 +73,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var taskFilterButton: ImageButton
     private lateinit var taskSortButton: ImageButton
     private lateinit var homeDateText: TextView
+    private lateinit var homeTitleText: TextView
     private lateinit var statusText: TextView
     private lateinit var emptyTasksText: TextView
     private lateinit var emptyTasksHint: TextView
@@ -94,6 +96,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var searchResults: RecyclerView
     private lateinit var searchEmpty: View
     private lateinit var searchHelper: View
+    private lateinit var searchRecentList: LinearLayout
     private lateinit var homeLoading: View
 
     private var allTasks: List<Task> = emptyList()
@@ -136,6 +139,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         taskFilterButton = view.findViewById(R.id.task_filter_button)
         taskSortButton = view.findViewById(R.id.task_sort_button)
         homeDateText = view.findViewById(R.id.home_date_text)
+        homeTitleText = view.findViewById(R.id.home_title_text)
         statusText = view.findViewById(R.id.task_status_text)
         emptyTasksText = view.findViewById(R.id.empty_tasks_text)
         emptyTasksHint = view.findViewById(R.id.empty_tasks_hint)
@@ -155,6 +159,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         searchResults = view.findViewById(R.id.search_results)
         searchEmpty = view.findViewById(R.id.search_empty)
         searchHelper = view.findViewById(R.id.search_helper)
+        searchRecentList = view.findViewById(R.id.search_recent_list)
         homeLoading = view.findViewById(R.id.home_loading)
 
         taskAdapter = TaskAdapter(
@@ -271,6 +276,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             renderTasks()
         }
         childFragmentManager.setFragmentResultListener(
+            HomeOptionsBottomSheet.RESULT_KEY,
+            viewLifecycleOwner
+        ) { _, result ->
+            showCompleted = result.getBoolean(HomeOptionsBottomSheet.RESULT_SHOW_COMPLETED)
+            preferences.showCompleted = showCompleted
+            renderTasks()
+        }
+        childFragmentManager.setFragmentResultListener(
             AddTaskBottomSheet.RESULT_KEY,
             viewLifecycleOwner
         ) { _, result ->
@@ -347,10 +360,45 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         view.findViewById<View>(R.id.task_search_close).setOnClickListener { closeSearch() }
         view.findViewById<View>(R.id.task_search_clear).setOnClickListener { taskSearchInput.text?.clear() }
         view.findViewById<View>(R.id.search_empty_clear).setOnClickListener { taskSearchInput.text?.clear() }
+        taskSearchInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH && searchQuery.isNotBlank()) {
+                preferences.addRecentSearch(searchQuery)
+                renderRecentSearches()
+                hideKeyboard()
+                true
+            } else false
+        }
+        view.findViewById<View>(R.id.search_recent_clear).setOnClickListener {
+            preferences.recentSearches = emptyList()
+            renderRecentSearches()
+        }
+        renderRecentSearches()
+    }
+
+    private fun renderRecentSearches() {
+        if (!::searchRecentList.isInitialized) return
+        searchRecentList.removeAllViews()
+        preferences.recentSearches.forEach { query ->
+            searchRecentList.addView(TextView(requireContext()).apply {
+                text = query
+                textSize = 14f
+                gravity = Gravity.CENTER_VERTICAL
+                minHeight = (48 * resources.displayMetrics.density).toInt()
+                setTextColor(requireContext().getColor(R.color.forgetty_text_primary))
+                setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_history, 0, 0, 0)
+                compoundDrawablePadding = (12 * resources.displayMetrics.density).toInt()
+                setOnClickListener {
+                    taskSearchInput.setText(query)
+                    taskSearchInput.setSelection(query.length)
+                }
+            })
+        }
+        view?.findViewById<View>(R.id.search_recent_clear)?.isVisible = preferences.recentSearches.isNotEmpty()
     }
 
     private fun openSearch() {
         taskSearchPanel.isVisible = true
+        renderRecentSearches()
         (activity as? MainActivity)?.setBottomNavigationVisible(false)
         taskSearchInput.requestFocus()
         taskSearchInput.post {
@@ -486,7 +534,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun bindActions() {
-        renderShowCompletedControl()
         taskSearchButton.setOnClickListener {
             taskAdapter.closeRevealedAction()
             openSearch()
@@ -494,10 +541,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         taskSettingsButton.setOnClickListener {
             taskAdapter.closeRevealedAction()
-            showCompleted = !showCompleted
-            preferences.showCompleted = showCompleted
-            renderShowCompletedControl()
-            renderTasks()
+            HomeOptionsBottomSheet.show(
+                childFragmentManager,
+                showCompleted,
+                sortMode,
+                selectedList,
+                selectedTags,
+                taskListStore.getLists().map { it.name },
+                (TaskTagStore.create(requireContext()).getTags().map { it.name } +
+                    allTasks.flatMap(Task::tags)).distinct().sorted()
+            )
         }
 
         taskFilterButton.setOnClickListener {
@@ -515,21 +568,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             taskAdapter.closeRevealedAction()
             showTaskMenu()
         }
-    }
-
-    private fun renderShowCompletedControl() {
-        taskSettingsButton.setImageResource(R.drawable.ic_check_circle)
-        ImageViewCompat.setImageTintList(
-            taskSettingsButton,
-            ColorStateList.valueOf(
-                requireContext().getColor(
-                    if (showCompleted) R.color.forgetty_primary else R.color.forgetty_text_secondary
-                )
-            )
-        )
-        taskSettingsButton.contentDescription = getString(
-            if (showCompleted) R.string.hide_completed_tasks else R.string.show_completed_tasks
-        )
     }
 
     private fun hideKeyboard() {
@@ -828,6 +866,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             showCompleted
         )
         val visibleTaskCount = sections.sumOf { it.tasks.size }
+        if (statusFilter == HomeTaskFilter.COMPLETED) {
+            homeTitleText.setText(R.string.completed)
+            val completedCount = allTasks.count(Task::completed)
+            homeDateText.text = resources.getQuantityString(
+                R.plurals.completed_tasks_count,
+                completedCount,
+                completedCount
+            )
+        } else {
+            homeTitleText.setText(R.string.today)
+            updateCurrentDate()
+        }
 
         taskAdapter.submitSections(sections) {
             if (shouldScrollToTopAfterRender && visibleTaskCount > 0) {
@@ -861,9 +911,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         val completionRate = if (progressScope.isEmpty()) 0 else completedTaskCount * 100 / progressScope.size
         taskProgressIndicator.progress = completionRate
-        taskProgressEncouragement.setText(
-            HomeProgressPresentation.messageRes(completedTaskCount, progressScope.size)
-        )
+        taskProgressEncouragement.text = "$completionRate%"
         statusText.isVisible = false
         homeLoading.isVisible = false
 
@@ -983,12 +1031,12 @@ internal object TaskSectioner {
         showCompleted: Boolean = false
     ): List<TaskSection> {
         val filtered = when (filter) {
-            HomeTaskFilter.ALL -> if (showCompleted) tasks else tasks.filterNot { it.completed }
+            HomeTaskFilter.ALL -> tasks.filter { showCompleted || !it.completed }
             HomeTaskFilter.TODAY -> tasks.filter {
-                !it.completed && it.dueDate.toLocalDateOrNull() == today
+                it.dueDate.toLocalDateOrNull() == today && (showCompleted || !it.completed)
             }
             HomeTaskFilter.HIGH_PRIORITY -> tasks.filter {
-                !it.completed && it.priority == TaskPriority.HIGH
+                it.priority == TaskPriority.HIGH && (showCompleted || !it.completed)
             }
             HomeTaskFilter.COMPLETED -> tasks.filter { it.completed }
         }
@@ -1026,7 +1074,7 @@ internal object TaskSectioner {
                 add(TaskSection(TaskSectionKind.NO_DUE_DATE, it))
             }
             if (showCompleted) {
-                tasks.filter(Task::completed).takeIf(List<Task>::isNotEmpty)?.let {
+                filtered.filter(Task::completed).takeIf(List<Task>::isNotEmpty)?.let {
                     add(TaskSection(TaskSectionKind.COMPLETED, it))
                 }
             }

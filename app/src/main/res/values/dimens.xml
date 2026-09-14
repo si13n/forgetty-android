@@ -5,5 +5,8 @@
     <dimen name="task_group_corner_radius">16dp</dimen>
     <dimen name="task_row_height">70dp</dimen>
     <dimen name="forgetty_touch_target">48dp</dimen>
+    <dimen name="forgetty_screen_padding">20dp</dimen>
+    <dimen name="forgetty_card_radius">14dp</dimen>
+    <dimen name="forgetty_sheet_radius">22dp</dimen>
     <dimen name="sort_menu_bottom_padding">16dp</dimen>
 </resources>

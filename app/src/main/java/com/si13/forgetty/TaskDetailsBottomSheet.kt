@@ -10,6 +10,8 @@ import android.text.InputFilter
 import android.graphics.Paint
 import android.view.View
 import android.view.Window
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.CheckBox
@@ -31,12 +33,15 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import java.text.DateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.Date
+import java.util.UUID
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -164,7 +169,17 @@ class TaskDetailsBottomSheet : BottomSheetDialogFragment() {
             if (ForgettyPreferences.create(requireContext()).confirmBeforeDeleting) {
                 com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.delete_task)
-                    .setMessage(R.string.delete_task_confirmation)
+                    .setMessage(
+                        if (task.subtasks.isEmpty()) {
+                            getString(R.string.delete_task_confirmation)
+                        } else {
+                            resources.getQuantityString(
+                                R.plurals.delete_task_with_subtasks_confirmation,
+                                task.subtasks.size,
+                                task.subtasks.size
+                            )
+                        }
+                    )
                     .setNegativeButton(R.string.cancel, null)
                     .setPositiveButton(R.string.delete) { _, _ -> deleteTask() }
                     .show()
@@ -201,16 +216,9 @@ class TaskDetailsBottomSheet : BottomSheetDialogFragment() {
 
     private fun bindMetadata(sheet: View) {
         val subtasks = sheet.findViewById<LinearLayout>(R.id.task_details_subtasks)
-        task.subtasks.forEach { item ->
-            subtasks.addView(CheckBox(requireContext()).apply {
-                text = item.title
-                isChecked = item.completed
-                minimumHeight = dp(48)
-                setOnCheckedChangeListener { _, checked ->
-                    task = task.copy(subtasks = task.subtasks.map { if (it.id == item.id) it.copy(completed = checked) else it })
-                    save()
-                }
-            })
+        renderSubtasks(subtasks)
+        sheet.findViewById<View>(R.id.task_details_add_subtask).setOnClickListener {
+            showAddSubtaskDialog(subtasks)
         }
         sheet.findViewById<TextView>(R.id.task_details_list).apply {
             text = task.listName
@@ -225,6 +233,65 @@ class TaskDetailsBottomSheet : BottomSheetDialogFragment() {
             isVisible = task.locationReminder != null
             text = task.locationReminder?.let { getString(R.string.location_reminder_summary, it.label) }
         }
+    }
+
+    private fun renderSubtasks(subtasks: LinearLayout) {
+        subtasks.removeAllViews()
+        task.subtasks.forEach { item ->
+            subtasks.addView(CheckBox(requireContext()).apply {
+                text = item.title
+                isChecked = item.completed
+                minimumHeight = dp(48)
+                setOnCheckedChangeListener { _, checked ->
+                    task = task.copy(subtasks = task.subtasks.map { if (it.id == item.id) it.copy(completed = checked) else it })
+                    save()
+                }
+            })
+        }
+    }
+
+    private fun showAddSubtaskDialog(container: LinearLayout) {
+        val field = TextInputLayout(requireContext()).apply {
+            hint = getString(R.string.subtask_name)
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            setPadding(dp(20), 0, dp(20), 0)
+        }
+        val input = TextInputEditText(requireContext()).apply {
+            hint = getString(R.string.subtask_name_example)
+            filters = arrayOf(InputFilter.LengthFilter(TaskRepository.MAX_TASK_LENGTH))
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            isSingleLine = true
+        }
+        field.addView(input)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.add_subtask)
+            .setView(field)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.add) { _, _ -> addSubtask(input.text?.toString(), container) }
+            .create()
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                addSubtask(input.text?.toString(), container)
+                dialog.dismiss()
+                true
+            } else false
+        }
+        dialog.setOnShowListener {
+            input.requestFocus()
+            input.post {
+                requireContext().getSystemService(InputMethodManager::class.java)
+                    ?.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun addSubtask(raw: String?, container: LinearLayout) {
+        val title = raw.orEmpty().trim()
+        if (title.isEmpty()) return
+        task = currentTask().copy(subtasks = task.subtasks + Subtask(UUID.randomUUID().toString(), title))
+        renderSubtasks(container)
+        save()
     }
 
     private fun scheduleTextSave() {

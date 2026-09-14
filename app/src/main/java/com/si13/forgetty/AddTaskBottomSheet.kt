@@ -7,10 +7,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.speech.RecognizerIntent
+import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,6 +46,7 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
     private lateinit var repository: TaskRepository
     private lateinit var preferences: ForgettyPreferences
     private lateinit var listStore: TaskListStore
+    private lateinit var tagStore: TaskTagStore
     private lateinit var title: TextInputEditText
     private lateinit var titleLayout: TextInputLayout
     private lateinit var save: MaterialButton
@@ -81,6 +84,7 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
         repository = TaskRepository.create(requireContext())
         preferences = ForgettyPreferences.create(requireContext())
         listStore = TaskListStore.create(requireContext())
+        tagStore = TaskTagStore.create(requireContext())
         selectedList = preferences.defaultList
     }
 
@@ -102,6 +106,10 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
 
         populateLists()
         populateTags()
+        childFragmentManager.setFragmentResultListener(
+            TagManagerBottomSheet.RESULT_KEY,
+            viewLifecycleOwner
+        ) { _, _ -> populateTags() }
         titleLayout.setEndIconOnClickListener { startVoiceInput() }
         title.doAfterTextChanged {
             titleLayout.error = null
@@ -127,10 +135,9 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
             (button as MaterialButton).setText(if (advanced.isVisible) R.string.less_options else R.string.more_options)
             button.icon?.level = if (advanced.isVisible) 1 else 0
         }
-        view.findViewById<TextInputEditText>(R.id.add_task_subtask_input).setOnEditorActionListener { field, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE && field.text?.isNotBlank() == true) {
-                addSubtask(field.text.toString()); field.text = ""; true
-            } else false
+        view.findViewById<View>(R.id.add_task_subtask_action).setOnClickListener { showAddSubtaskDialog() }
+        view.findViewById<View>(R.id.add_task_manage_tags).setOnClickListener {
+            TagManagerBottomSheet.show(childFragmentManager)
         }
         view.findViewById<View>(R.id.add_task_attachment).setOnClickListener {
             fileLauncher.launch(arrayOf("image/*", "application/pdf", "text/*"))
@@ -175,9 +182,17 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun populateTags() {
-        listOf("QA", "Personal", "Shopping", "Important").forEach { label ->
+        val selected = (0 until tags.childCount).mapNotNull { index ->
+            (tags.getChildAt(index) as? Chip)?.takeIf(Chip::isChecked)?.tag as? String
+        }.toSet()
+        tags.removeAllViews()
+        tagStore.getTags().forEach { definition ->
             tags.addView(Chip(requireContext()).apply {
-                id = View.generateViewId(); text = label; tag = label; isCheckable = true
+                id = View.generateViewId()
+                text = definition.name
+                tag = definition.name
+                isCheckable = true
+                isChecked = definition.name in selected
             })
         }
     }
@@ -310,6 +325,44 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
         })
     }
 
+    private fun showAddSubtaskDialog() {
+        val field = TextInputLayout(requireContext()).apply {
+            hint = getString(R.string.subtask_name)
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            setPadding(dp(20), 0, dp(20), 0)
+        }
+        val input = TextInputEditText(requireContext()).apply {
+            hint = getString(R.string.subtask_name_example)
+            filters = arrayOf(InputFilter.LengthFilter(TaskRepository.MAX_TASK_LENGTH))
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            isSingleLine = true
+        }
+        field.addView(input)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.add_subtask)
+            .setView(field)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.add) { _, _ ->
+                input.text?.toString()?.trim()?.takeIf(String::isNotEmpty)?.let(::addSubtask)
+            }
+            .create()
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE && input.text?.isNotBlank() == true) {
+                addSubtask(input.text.toString())
+                dialog.dismiss()
+                true
+            } else false
+        }
+        dialog.setOnShowListener {
+            input.requestFocus()
+            input.post {
+                requireContext().getSystemService(InputMethodManager::class.java)
+                    ?.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
+        dialog.show()
+    }
+
     private fun attachDocument(uri: Uri) {
         runCatching {
             requireContext().contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -385,11 +438,20 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
                 submitting = false
                 save.isEnabled = true
             } catch (exception: Exception) {
-                Snackbar.make(requireView(), R.string.add_task_failed, Snackbar.LENGTH_LONG).show()
                 submitting = false
                 save.isEnabled = true
+                showSaveError()
             }
         }
+    }
+
+    private fun showSaveError() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.save_task_error_title)
+            .setMessage(R.string.save_task_error_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.retry) { _, _ -> submit() }
+            .show()
     }
 
     private fun requestClose() {
@@ -401,6 +463,8 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
             .setPositiveButton(R.string.discard) { _, _ -> dismiss() }
             .show()
     }
+
+    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     companion object {
         const val TAG = "add_task"

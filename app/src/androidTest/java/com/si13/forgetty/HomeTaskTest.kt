@@ -189,7 +189,8 @@ class HomeTaskTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             continueAsGuest()
 
-            onView(withId(R.id.task_sort_button)).perform(click())
+            onView(withId(R.id.task_settings_button)).perform(click())
+            onView(withId(R.id.home_options_sort_row)).perform(click())
 
             onView(withId(R.id.sort_menu_root)).check(matches(isDisplayed()))
             onView(withText(R.string.sort_due_date)).check(matches(isDisplayed()))
@@ -202,11 +203,13 @@ class HomeTaskTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             continueAsGuest()
 
-            onView(withId(R.id.task_sort_button)).perform(click())
+            onView(withId(R.id.task_settings_button)).perform(click())
+            onView(withId(R.id.home_options_sort_row)).perform(click())
             onView(withId(R.id.sort_option_priority)).perform(click())
             onView(withId(R.id.sort_menu_root)).check(doesNotExist())
 
-            onView(withId(R.id.task_sort_button)).perform(click())
+            onView(withId(R.id.task_settings_button)).perform(click())
+            onView(withId(R.id.home_options_sort_row)).perform(click())
             onView(withId(R.id.sort_option_priority)).check(matches(isSelected()))
         }
     }
@@ -216,7 +219,8 @@ class HomeTaskTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             continueAsGuest()
 
-            onView(withId(R.id.task_filter_button)).perform(click())
+            onView(withId(R.id.task_settings_button)).perform(click())
+            onView(withId(R.id.home_options_lists_row)).perform(click())
             onView(withContentDescription(R.string.manage_lists)).perform(click())
             onView(withId(R.id.list_manager_list_card)).check(matches(isDisplayed()))
             onView(withId(R.id.list_manager_create)).perform(click())
@@ -230,7 +234,7 @@ class HomeTaskTest {
             onView(withId(R.id.list_manager_name)).perform(replaceText("Weekend"))
             onView(withId(R.id.list_manager_colors)).perform(clickChildAt(2))
             onView(withId(R.id.list_manager_name)).perform(pressImeActionButton())
-            onView(withText("Weekend")).check(matches(isDisplayed()))
+            onView(withContentDescription("Delete Weekend list")).check(matches(isDisplayed()))
 
             onView(withContentDescription("Delete Weekend list")).perform(click())
             onView(withText("Delete \"Weekend\"?")).inRoot(isDialog()).check(matches(isDisplayed()))
@@ -266,7 +270,8 @@ class HomeTaskTest {
             continueAsGuest()
             onView(withId(R.id.task_list)).check(firstTaskTextIs("Guest task 3"))
 
-            onView(withId(R.id.task_sort_button)).perform(click())
+            onView(withId(R.id.task_settings_button)).perform(click())
+            onView(withId(R.id.home_options_sort_row)).perform(click())
             onView(withText(R.string.sort_alphabetical)).perform(click())
 
             onView(withId(R.id.task_list)).check(firstTaskTextIs("Guest task 1"))
@@ -333,7 +338,7 @@ class HomeTaskTest {
             onView(isRoot()).perform(waitFor(500))
             onView(withText("Finish checklist")).check(doesNotExist())
 
-            onView(withId(R.id.task_settings_button)).perform(click())
+            onView(withId(R.id.status_filter_completed)).perform(click())
             onView(withText("Finish checklist")).check(matches(isDisplayed()))
             onView(withId(R.id.task_section_title)).check(matches(isDisplayed()))
         }
@@ -870,16 +875,16 @@ class HomeTaskTest {
         return ViewAssertion { view, _ ->
             val titleColumn = view.findViewById<View>(R.id.home_title_column)
             val actions = view.findViewById<View>(R.id.home_header_actions)
-            val sort = view.findViewById<View>(R.id.task_sort_button)
-            val visibility = view.findViewById<View>(R.id.task_settings_button)
+            val search = view.findViewById<View>(R.id.task_search_button)
+            val options = view.findViewById<View>(R.id.task_settings_button)
             val expectedTouchTarget = (48f * view.resources.displayMetrics.density).toInt()
 
             assertTrue("Header content is clipped.", titleColumn.right <= view.width)
             assertTrue("Header actions are clipped at the end.", actions.right <= view.width)
-            assertEquals(expectedTouchTarget, sort.width)
-            assertEquals(expectedTouchTarget, sort.height)
-            assertEquals(expectedTouchTarget, visibility.width)
-            assertEquals(expectedTouchTarget, visibility.height)
+            assertEquals(expectedTouchTarget, search.width)
+            assertEquals(expectedTouchTarget, search.height)
+            assertEquals(expectedTouchTarget, options.width)
+            assertEquals(expectedTouchTarget, options.height)
         }
     }
 

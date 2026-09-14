@@ -119,6 +119,7 @@ class NotificationSettingsBottomSheet : BottomSheetDialogFragment() {
         toggle.setOnCheckedChangeListener { _, enabled ->
             persist(enabled)
             if (enabled) requestNotificationPermission()
+            DailyNotificationScheduler.schedule(requireContext())
         }
         root.findViewById<View>(rowId).setOnClickListener {
             toggle.isChecked = !toggle.isChecked

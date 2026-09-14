@@ -73,6 +73,13 @@ class FilterBottomSheet : BottomSheetDialogFragment() {
         root.findViewById<View>(R.id.filter_manage_lists).setOnClickListener {
             ListManagerBottomSheet.show(parentFragmentManager)
         }
+        root.findViewById<View>(R.id.filter_manage_tags).setOnClickListener {
+            TagManagerBottomSheet.show(childFragmentManager)
+        }
+        childFragmentManager.setFragmentResultListener(
+            TagManagerBottomSheet.RESULT_KEY,
+            this
+        ) { _, _ -> renderTags() }
         root.findViewById<View>(R.id.filter_clear).setOnClickListener {
             selectedList = null
             selectedTags.clear()
@@ -116,7 +123,8 @@ class FilterBottomSheet : BottomSheetDialogFragment() {
 
     private fun renderTags() {
         tagGroup.removeAllViews()
-        val tags = arguments?.getStringArrayList(ARG_AVAILABLE_TAGS).orEmpty()
+        val tags = (TaskTagStore.create(requireContext()).getTags().map { it.name } +
+            arguments?.getStringArrayList(ARG_AVAILABLE_TAGS).orEmpty()).distinct()
         tags.forEach { tag -> tagGroup.addView(Chip(requireContext()).apply { text = tag; isCheckable = true; isChecked = tag in selectedTags; setOnCheckedChangeListener { _, checked -> if (checked) selectedTags += tag else selectedTags -= tag; updateApplyLabel() }; chipBackgroundColor = requireContext().getColorStateList(R.color.home_list_chip_background); setTextColor(requireContext().getColorStateList(R.color.home_list_chip_text)) }) }
     }
 

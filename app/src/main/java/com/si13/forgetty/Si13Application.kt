@@ -7,5 +7,6 @@ class Si13Application : Application() {
         // Apply before the first Activity is created to prevent a light-theme flash.
         AppearancePreferences.create(this).applyStoredMode()
         super.onCreate()
+        DailyNotificationScheduler.schedule(this)
     }
 }

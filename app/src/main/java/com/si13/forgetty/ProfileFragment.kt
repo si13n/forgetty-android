@@ -78,12 +78,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         // Avoid showing the default guest state while the combined flow initializes.
         render(ProfileUiState(user = users.value))
         signInButton.setOnClickListener { signIn() }
+        view.findViewById<View>(R.id.profile_create_account_button).setOnClickListener { signIn() }
         signOutButton.setOnClickListener { confirmSignOut() }
         view.findViewById<View>(R.id.profile_appearance_row).setOnClickListener {
             showAppearanceDialog()
         }
         view.findViewById<View>(R.id.profile_manage_lists_row).setOnClickListener {
             ListManagerBottomSheet.show(parentFragmentManager)
+        }
+        view.findViewById<View>(R.id.profile_manage_tags_row).setOnClickListener {
+            TagManagerBottomSheet.show(parentFragmentManager)
         }
         view.findViewById<View>(R.id.profile_notifications_row).setOnClickListener {
             NotificationSettingsBottomSheet.show(parentFragmentManager)
@@ -137,6 +141,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         accountCard.isVisible = state.showProfileCard
         signOutButton.isVisible = state.showSignOut
         guestContainer.isVisible = state.user == null
+        view?.findViewById<View>(R.id.profile_settings_title)?.isVisible = true
+        view?.findViewById<View>(R.id.profile_settings_card)?.isVisible = true
+        view?.findViewById<View>(R.id.profile_extended_settings)?.isVisible = true
+        view?.findViewById<View>(R.id.profile_version_label)?.isVisible = true
         setProgress(state)
         renderSyncStatus(state.isOnline)
         appearanceValue.setText(appearancePreferences.mode.labelRes)

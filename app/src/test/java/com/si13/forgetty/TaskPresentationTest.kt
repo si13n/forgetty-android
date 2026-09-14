@@ -69,6 +69,22 @@ class TaskPresentationTest {
     }
 
     @Test
+    fun `show completed augments only the selected today scope`() {
+        val todayDone = task("today-done", dueDate = today.toString(), completed = true)
+        val laterDone = task("later-done", dueDate = today.plusDays(1).toString(), completed = true)
+        val todayActive = task("today-active", dueDate = today.toString())
+
+        val sections = TaskSectioner.sections(
+            listOf(todayDone, laterDone, todayActive),
+            HomeTaskFilter.TODAY,
+            today,
+            showCompleted = true
+        )
+
+        assertEquals(listOf("today-active", "today-done"), sections.flatMap { it.tasks }.map(Task::id))
+    }
+
+    @Test
     fun `home progress messages match Figma thresholds`() {
         assertEquals(R.string.progress_get_started, HomeProgressPresentation.messageRes(0, 0))
         assertEquals(R.string.progress_get_started, HomeProgressPresentation.messageRes(0, 5))

@@ -24,6 +24,7 @@ import java.time.ZoneId
 class StatsFragment : Fragment(R.layout.fragment_stats) {
     private lateinit var content: LinearLayout
     private lateinit var repository: TaskRepository
+    private var period = StatsPeriod.WEEK
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -39,57 +40,63 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     private fun render(tasks: List<Task>) {
         content.removeAllViews()
         title("Stats", 28)
+        periodSelector(tasks)
         val today = LocalDate.now()
         val completed = tasks.count { it.completed }
-        val active = tasks.size - completed
-        val completedToday = tasks.count { it.completed && updatedDate(it) == today }
         val rate = if (tasks.isEmpty()) 0 else completed * 100 / tasks.size
-        val overdue = tasks.filter { !it.completed && it.dueDate?.let { d -> runCatching { LocalDate.parse(d).isBefore(today) }.getOrDefault(false) } == true }
-
-        val metrics = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
-        metricColumn(metrics, "Completed today", completedToday.toString())
-        metricColumn(metrics, "Active tasks", active.toString())
-        content.addView(metrics)
-        val metrics2 = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
-        metricColumn(metrics2, "Completion rate", "$rate%")
-        metricColumn(metrics2, "Total tasks", tasks.size.toString())
-        content.addView(metrics2)
-
-        card("Overdue", tinted = overdue.isNotEmpty()).apply {
-            val row = getChildAt(0) as LinearLayout
-
-            row.orientation = LinearLayout.HORIZONTAL
-            row.gravity = Gravity.CENTER_VERTICAL
-
-            row.getChildAt(0).layoutParams = LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-
-            val value = TextView(context).apply {
-                text = overdue.size.toString()
-                textSize = 24f
-                setTextColor(
-                    if (overdue.isEmpty()) {
-                        color(R.color.forgetty_text_secondary)
-                    } else {
-                        color(R.color.home_priority_high)
-                    }
-                )
-                gravity = Gravity.END or Gravity.CENTER_VERTICAL
-            }
-
-            row.addView(value)
-        }.also(content::addView)
-
+        val periodCompleted = tasks.filter { it.completed && period.includes(updatedDate(it), today) }
+        val summary = card(null)
+        val summaryBox = summary.getChildAt(0) as LinearLayout
+        val summaryRow = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        addTextToBox(summaryRow, "$rate%", 28, color(R.color.forgetty_text_primary), true)
+        addTextToBox(summaryRow, "↑ ${periodCompleted.size}% this ${period.label.lowercase()}", 12, color(R.color.forgetty_success), true)
+        (summaryRow.getChildAt(0) as TextView).layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+        summaryBox.addView(summaryRow)
+        addTextToBox(summaryBox, "Completion rate  ·  $completed of ${tasks.size} tasks completed", 12, color(R.color.forgetty_text_secondary))
+        content.addView(summary)
         activityCard(tasks, today)
-        breakdownCard("By list", tasks.groupingBy { it.listName }.eachCount()) { name, count ->
-            val done = tasks.count { it.listName == name && it.completed }
-            "$done/$count"
+        breakdownCard(
+            heading = "Tasks by list",
+            values = tasks.groupingBy(Task::listName).eachCount(),
+            suffix = { _, count -> "$count tasks" }
+        )
+        val metrics = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
+        metricColumn(metrics, "Current streak", "🔥 ${currentStreak(tasks, today)} days")
+        metricColumn(metrics, "Completed this ${period.label.lowercase()}", "✓ ${periodCompleted.size} tasks")
+        content.addView(metrics)
+        val top = periodCompleted.groupingBy(Task::listName).eachCount().maxByOrNull { it.value }
+        card("Top list").apply {
+            val box = getChildAt(0) as LinearLayout
+            val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            addTextToBox(row, top?.key ?: "—", 16, color(R.color.forgetty_text_primary), true)
+            addTextToBox(row, top?.let { "${it.value} completed" } ?: "No completed tasks", 13, color(R.color.forgetty_primary))
+            (row.getChildAt(0) as TextView).layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+            box.addView(row)
+        }.also(content::addView)
+    }
+
+    private fun periodSelector(tasks: List<Task>) {
+        val group = LinearLayout(requireContext()).apply { orientation = LinearLayout.HORIZONTAL }
+        StatsPeriod.entries.forEach { option ->
+            group.addView(Chip(requireContext()).apply {
+                text = option.label
+                isCheckable = true
+                isChecked = period == option
+                setEnsureMinTouchTargetSize(true)
+                setOnClickListener {
+                    if (period != option) {
+                        period = option
+                        render(tasks)
+                    }
+                }
+            }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
         }
-        tagsCard(tasks.flatMap { it.tags }.groupingBy { it }.eachCount())
-        breakdownCard("Priority", mapOf("High" to tasks.count { it.priority == TaskPriority.HIGH && !it.completed }, "Normal" to tasks.count { it.priority != TaskPriority.HIGH && !it.completed }, "Completed" to completed)) { _, count -> count.toString() }
+        content.addView(group, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(4) })
+    }
+
+    private fun currentStreak(tasks: List<Task>, today: LocalDate): Int {
+        val days = tasks.filter(Task::completed).mapNotNull(::updatedDate).toSet()
+        return generateSequence(today) { it.minusDays(1) }.takeWhile { it in days }.count()
     }
 
     private fun title(text: String, size: Int) = content.addView(TextView(requireContext()).apply { this.text = text; textSize = size.toFloat(); setTypeface(null, Typeface.BOLD); setTextColor(color(R.color.forgetty_text_primary)); setPadding(0, 0, 0, 16) })
@@ -105,4 +112,14 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
     private fun daysLate(task: Task, today: LocalDate): Long = runCatching { today.toEpochDay() - LocalDate.parse(task.dueDate).toEpochDay() }.getOrDefault(0)
     private fun color(id: Int) = requireContext().getColor(id)
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+}
+
+private enum class StatsPeriod(val label: String) {
+    WEEK("Week"), MONTH("Month"), YEAR("Year");
+
+    fun includes(date: LocalDate?, today: LocalDate): Boolean = when (this) {
+        WEEK -> date != null && !date.isBefore(today.minusDays(6)) && !date.isAfter(today)
+        MONTH -> date?.month == today.month && date.year == today.year
+        YEAR -> date?.year == today.year
+    }
 }

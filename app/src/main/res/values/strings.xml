@@ -10,7 +10,7 @@
     <string name="shortcut_today">Today’s tasks</string>
     <string name="shortcut_voice">Voice task</string>
     <string name="shortcut_search">Search tasks</string>
-    <string name="home">Home</string>
+    <string name="home">Tasks</string>
     <string name="today">Today</string>
     <string name="my_tasks">My tasks</string>
     <string name="list_view">List</string>
@@ -24,6 +24,9 @@
     <string name="search_tasks_placeholder">Search tasks…</string>
     <string name="clear_search">Clear search</string>
     <string name="search_titles_notes">Search task titles and notes</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="clear_recent_searches">Clear recent searches</string>
+    <string name="search_all_fields">Search by task name, list, or tag.</string>
     <string name="no_matching_tasks">No matching tasks</string>
     <string name="try_different_search">Try a different search or clear the query.</string>
     <string name="offline_changes_sync_later">You’re offline. Changes will sync later.</string>
@@ -59,9 +62,24 @@
     </plurals>
     <string name="lists_and_collaboration">Lists &amp; collaboration</string>
     <string name="manage_lists_summary">Organize Personal, Work, Shared and Shopping</string>
+    <string name="manage_tags">Manage tags</string>
+    <string name="manage_tags_description">Create, rename, recolor, or remove tags.</string>
+    <string name="create_new_tag">Create new tag</string>
+    <string name="edit_tag">Edit tag</string>
+    <string name="tag_name">Tag name</string>
+    <string name="tag_name_example">e.g. Release</string>
+    <string name="tag_color">Color</string>
+    <string name="close_manage_tags">Close tag manager</string>
+    <string name="delete_tag_accessibility">Delete %1$s tag</string>
+    <string name="delete_tag_title">Delete "%1$s"?</string>
+    <string name="delete_tag_message">The tag will be removed from tasks. Tasks will not be deleted.</string>
+    <plurals name="tasks_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
     <string name="all_filter">All</string>
     <string name="today_filter">Today</string>
-    <string name="high_priority_filter">High priority</string>
+    <string name="high_priority_filter">High</string>
     <string name="filter_tasks">Filter tasks</string>
     <string name="clear_all">Clear all</string>
     <string name="filter_lists">Lists</string>
@@ -72,6 +90,16 @@
     <string name="add">Add</string>
     <string name="done">Done</string>
     <string name="close_filter">Close filter</string>
+    <string name="home_options">Home options</string>
+    <string name="close_home_options">Close Home options</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort_order">Order</string>
+    <string name="soonest_first">Soonest first</string>
+    <string name="filters">Filters</string>
+    <string name="any_tag">Any tag</string>
+    <string name="any_due_date">Any</string>
+    <string name="show_completed_explanation">Include completed tasks in All, Today and High</string>
+    <string name="reset">Reset</string>
     <string name="completed_filter_label">Completed</string>
     <string name="progress_get_started">Let\'s get started</string>
     <string name="progress_good_start">A good start</string>
@@ -92,6 +120,8 @@
     <string name="less_options">Less options</string>
     <string name="tags">Tags</string>
     <string name="add_subtask">Add subtask</string>
+    <string name="subtask_name">Subtask name</string>
+    <string name="subtask_name_example">Prepare screenshots</string>
     <string name="attachment">Attachment</string>
     <string name="location">Location</string>
     <string name="location_reminder_title">Location reminder</string>
@@ -127,6 +157,9 @@
     <string name="no_date">No date</string>
     <string name="save_task">Add task</string>
     <string name="add_task_failed">Could not add the task. Please try again.</string>
+    <string name="save_task_error_title">Couldn’t save task</string>
+    <string name="save_task_error_message">Check your connection and try again. Your changes are still here.</string>
+    <string name="retry">Retry</string>
     <plurals name="tasks_left">
         <item quantity="one">%d task left</item>
         <item quantity="other">%d tasks left</item>
@@ -165,7 +198,11 @@
     <string name="delete_all_tasks_message">This will permanently delete every task in the active account. This can’t be undone.</string>
     <string name="delete">Delete</string>
     <string name="delete_task">Delete task</string>
-    <string name="delete_task_confirmation">This task will be removed. You can undo from Home.</string>
+    <string name="delete_task_confirmation">This task will be permanently deleted.</string>
+    <plurals name="delete_task_with_subtasks_confirmation">
+        <item quantity="one">This task and %d subtask will be permanently deleted.</item>
+        <item quantity="other">This task and %d subtasks will be permanently deleted.</item>
+    </plurals>
     <string name="delete_task_accessibility">Delete %1$s</string>
     <string name="cancel">Cancel</string>
     <string name="set_task_priority">Set task priority</string>
@@ -196,11 +233,12 @@
     <string name="profile">Profile</string>
     <string name="guest_status">Guest</string>
     <string name="guest_profile_message">You are using the application without an account.</string>
-    <string name="using_forgetty_guest">Using Forgetty as a guest</string>
-    <string name="guest_local_storage_explanation">Your tasks are stored on this device only. Sign in to keep them synchronized.</string>
+    <string name="using_forgetty_guest">Sign in to sync your tasks</string>
+    <string name="guest_local_storage_explanation">Keep tasks backed up and available across your Android devices.</string>
     <string name="google_privacy_reassurance">Google is used only to sign you in. Forgetty never sees your password.</string>
     <string name="profile_picture">Profile picture</string>
     <string name="sign_in">Sign in</string>
+    <string name="create_account">Create account</string>
     <string name="sign_out">Sign out</string>
     <string name="unknown_email">No email available</string>
     <string name="unknown_name">Google user</string>
@@ -213,6 +251,7 @@
     <string name="weekly_activity_description">Completed tasks over the last seven days</string>
     <string name="weekly_activity_values">Completed tasks for the last seven days: %1$s</string>
     <string name="completed">Completed</string>
+    <string name="complete">Complete</string>
     <string name="active">Active</string>
     <string name="completion_rate">Completion rate</string>
     <string name="productivity">Productivity</string>
@@ -220,7 +259,8 @@
     <string name="completed_this_week">This week</string>
     <string name="active_tasks">Active tasks</string>
     <string name="percentage_format">%1$d%%</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Profile</string>
+    <string name="preferences">Preferences</string>
     <string name="stats">Stats</string>
     <string name="task_preferences">Task preferences</string>
     <string name="task_preferences_summary">Default filter, list and start of week</string>
@@ -229,14 +269,14 @@
     <string name="default_list">Default list</string>
     <string name="start_of_week">Start of week</string>
     <string name="notifications">Notifications</string>
-    <string name="notifications_summary">Task reminders, overdue alerts and daily summary</string>
+    <string name="notifications_summary">Reminders, due-today alerts and today digest</string>
     <string name="close_notifications">Close notification settings</string>
-    <string name="task_reminders">Task reminders</string>
-    <string name="task_reminders_summary">Notify when a task is due</string>
-    <string name="overdue_reminders">Overdue reminders</string>
-    <string name="overdue_reminders_summary">Alert me about unfinished overdue tasks</string>
-    <string name="daily_summary">Daily summary</string>
-    <string name="daily_summary_description">Show a daily task overview</string>
+    <string name="task_reminders">Reminder</string>
+    <string name="task_reminders_summary">Notify at the reminder time</string>
+    <string name="overdue_reminders">Due today</string>
+    <string name="overdue_reminders_summary">Show tasks that are due today</string>
+    <string name="daily_summary">Today digest</string>
+    <string name="daily_summary_description">A short morning overview of today</string>
     <string name="notification_permission_denied">Notifications remain off. You can enable them later in Android settings.</string>
     <string name="data_and_sync">Data and sync</string>
     <string name="data_and_sync_summary">Export and manage your task data</string>
@@ -300,11 +340,28 @@
     <string name="light">Light</string>
     <string name="dark">Dark</string>
     <string name="reminders">Reminders</string>
-    <string name="complete">Complete</string>
-    <string name="remind_later">Remind later</string>
+    <string name="open_app">Open app</string>
+    <string name="reminder_notification_title">Reminder: %1$s</string>
+    <string name="due_today_notification_title">Task due today</string>
+    <string name="today_digest_notification_title">Today: %1$d tasks</string>
+    <plurals name="today_digest_high_priority">
+        <item quantity="one">%d high priority</item>
+        <item quantity="other">%d high priority</item>
+    </plurals>
+    <plurals name="today_digest_due_later">
+        <item quantity="one">%d due later</item>
+        <item quantity="other">%d due later</item>
+    </plurals>
+    <string name="today_digest_ready">Ready for today</string>
     <string name="reminder_channel_name">Task reminders</string>
     <string name="reminder_channel_description">Due and scheduled Forgetty task reminders</string>
+    <string name="daily_channel_name">Today planning</string>
+    <string name="daily_channel_description">Due-today alerts and the Today digest</string>
     <string name="completed_tasks">Completed tasks</string>
+    <plurals name="completed_tasks_count">
+        <item quantity="one">%d completed task</item>
+        <item quantity="other">%d completed tasks</item>
+    </plurals>
     <string name="sign_out_confirmation_title">Sign out?</string>
     <string name="sign_out_confirmation_message">You can sign in again at any time.</string>
 </resources>
