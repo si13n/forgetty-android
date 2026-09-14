@@ -58,6 +58,9 @@ jobs:
       - name: Build optimized release bundle
         run: ./gradlew bundleRelease --console=plain
 
+      - name: Verify 16 KB native library alignment
+        run: bash scripts/verify-16kb-page-size.sh
+
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --console=plain
 
