@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/profile_notifications_row"
     android:layout_width="match_parent"
     android:layout_height="68dp"
@@ -20,7 +21,7 @@
             android:layout_gravity="center"
             android:contentDescription="@null"
             android:src="@drawable/ic_notifications"
-            android:tint="@color/home_accent" />
+            app:tint="@color/home_accent" />
     </FrameLayout>
 
     <LinearLayout
@@ -52,5 +53,5 @@
         android:layout_height="24dp"
         android:contentDescription="@null"
         android:src="@drawable/ic_chevron_right"
-        android:tint="@color/home_accent" />
+        app:tint="@color/home_accent" />
 </LinearLayout>
